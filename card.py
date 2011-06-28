@@ -1,9 +1,5 @@
 class Card:
     """Represents a single card"""
-    _suit = None
-    _rank = None
-    _code = None
-    _value = 0
     
     def val(self):
         return self._value
@@ -83,6 +79,13 @@ class Card:
             return self._rank + ' of ' + self._suit
         else:
             return self._rank 
+
+suits = 'HCDS '
+ranks = 'A23456789TJQKX'
+suit_names = ['Hearts', 'Clubs', 'Diamonds', 'Spades', None]
+rank_names = ['Ace', 'Two', 'Three', 'Four', 'Five', \
+                'Six', 'Seven', 'Eight', 'Nine', 'Ten', 'Jack', \
+                'Queen', 'King', 'Joker']
 
 class CardError (Exception):
     """
