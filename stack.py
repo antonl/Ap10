@@ -34,6 +34,15 @@ class Stack:
         self._cards[index] = []
         return tmp
 
+    def get_score(self):
+        return sum(i.val() for i in self._cards)
+
+    def __iadd__(self, other):
+        """In place addition of one stack to another stack. The second stack is emptied in this case"""
+        self._cards.extend(other._cards)
+        other._cards = []
+        return self
+
     def deal(self, cards, players = 3):
         if len(self._cards) < cards*players: 
             raise card.CardError('Cannot deal that many cards from Stack') 
@@ -70,21 +79,3 @@ class Stack:
         for i in self._cards:
             s = s + i._code + ' '
         return s
-
-if __name__ == '__main__':
-    a = Stack()
-    a.make_deck(decks=2)
-    print a
-    a.shuffle()
-    print a
-    print('Total cards: ' + str(a.card_count()))
-    for i in range(20):
-    	print a.draw()
-
-    b = Stack()
-    b.make_deck(decks=3)
-    b.shuffle()
-    hand = b.deal(10, players=3)
-    for i in hand:
-    	print i 
-
