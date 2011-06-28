@@ -28,10 +28,10 @@ class Stack:
     def take_at(self, index):
         """Take the card at specific index, removing it from stack"""
         if index not in range(len(self._cards)):
-            raise card.CardError('index out of bounds:  %d (0 to %d possible)' % (index, len(self._cards))
+            raise card.CardError('index out of bounds:  %d (0 to %d possible)' % (index, len(self._cards)))
 
         tmp = self._cards[index]
-        self._cards.delete(index)
+        self._cards[index] = []
         return tmp
 
     def deal(self, cards, players = 3):

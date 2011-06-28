@@ -44,7 +44,15 @@ class TestStack (unittest.TestCase):
         self.assertNotEqual(hands[0], hands[1])
         self.assertNotIn(hands[0]._cards, a._cards)
         self.assertNotIn(hands[1]._cards, a._cards)
+    
+    def test_take_at(self):
+        stk = stack.Stack()
+        stk.make_deck(decks=1)
+        a = stk._cards[10]
+        b = stk.take_at(10)
+        self.assertEqual(a,b)
 
+        
 if __name__ == '__main__':
 	unittest.main()
 
