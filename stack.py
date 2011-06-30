@@ -79,3 +79,9 @@ class Stack:
         for i in self._cards:
             s = s + i._code + ' '
         return s
+
+if __name__ == '__main__':
+    import unittest
+    import test_stack
+    suite = unittest.TestLoader().loadTestsFromTestCase(test_stack.TestStack)
+    unittest.TextTestRunner(verbosity=2).run(suite)

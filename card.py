@@ -92,3 +92,10 @@ class CardError (Exception):
     Represents an error in creation or use of card class
     """
     pass
+
+if __name__ == '__main__':
+    import unittest
+    import test_card
+    suite = unittest.TestLoader().loadTestsFromTestCase(test_card.TestCardCreation)
+    unittest.TextTestRunner(verbosity=2).run(suite)
+

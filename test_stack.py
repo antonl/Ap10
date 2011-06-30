@@ -39,11 +39,16 @@ class TestStack (unittest.TestCase):
         a.make_deck(decks=1)
         a.shuffle()
         
-        hands = a.deal(10, players=2)
+        hands = a.deal(10, players=5)
 
         self.assertNotEqual(hands[0], hands[1])
         self.assertNotIn(hands[0]._cards, a._cards)
         self.assertNotIn(hands[1]._cards, a._cards)
+        self.assertNotIn(hands[2]._cards, a._cards)
+        self.assertNotIn(hands[3]._cards, a._cards)
+        self.assertNotIn(hands[4]._cards, a._cards)
+
+        self.assertTrue(a.card_count(), 4)
     
     def test_take_at(self):
         stk = stack.Stack()
