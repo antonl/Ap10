@@ -55,6 +55,9 @@ class Player:
 class PlayerTurn:
     pass
 
+class Phase:
+    pass
+
 class Card:
     """Represents a single card"""
     
@@ -81,7 +84,7 @@ class Card:
         elif s == ' ': # Used for jokers
             self._suit = None
         else:
-            raise CardError('Invalid suit code "' + s + '"')
+            raise CardError('Invalid suit code \'%s\'' % s)
 
         # Set rank
         r = code[1]
@@ -126,10 +129,13 @@ class Card:
             self._rank = 'King'
             self._value = 25 
         elif r == 'X':
-            self._rank = 'Joker'
-            self._value = 15
+            if s == ' ':
+                self._rank = 'Joker'
+                self._value = 15
+            else:
+            	raise CardError('Cannot create suited jokers \'%s\'' % code)
         else:
-             raise CardError('Invalid rank code "' + r + '"')
+             raise CardError('Invalid rank code %s', r)
 
     def __str__(self):
         if self._rank is not 'Joker':

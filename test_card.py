@@ -1,8 +1,5 @@
-import card
+from phase10 import *
 import unittest
-
-Card = card.Card
-CardError = card.CardError
 
 class TestCardCreation (unittest.TestCase):
     def test_invalid_code(self):
@@ -13,8 +10,8 @@ class TestCardCreation (unittest.TestCase):
         # Exclude jokers for now
         for i in range(4):
             for j in range(13):
-                card1 = Card(card.suits[i] + card.ranks[j])
-                self.assertTrue(card1.__str__() == (card.rank_names[j] + ' of ' + card.suit_names[i]), msg='actual string is "' + card1.__str__() +'"')
+                card1 = Card(suits[i] + ranks[j])
+                self.assertTrue(card1.__str__() == (rank_names[j] + ' of ' + suit_names[i]), msg='actual string is "' + card1.__str__() +'"')
         
     def test_create_jokers(self):
         card1 = Card(' X')
