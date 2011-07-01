@@ -45,14 +45,63 @@ class Game:
     
     @property
     def turn(self):
+        player_index = self._playorder[self._turn % len(self._players)]
+
+        sets = []
+        for i in self._playorder:
+            if i is not player_index:
+                sets.append(self._players[i]._set)
+
+        return Turn(self._players[player_index], sets, self._deck, self._discard)
+
+    def next(self):
         self._turn += 1
-        # return Turn
-        pass
 
     def __repr__(self):
         return "Game({'deck' : %s, 'players' : %s, 'discard' : %s, 'hands' : %s, 'playorder' : %s, 'turn' : %s})" \
                 % (repr(self._deck), repr(self._players), repr(self._discard), repr(self._hands), \
                         repr(self._playorder), repr(self._turn))
+class Turn:
+    def __init__(self, player, sets, deck, discard):
+        self._player = player
+        self._discard = discard
+        self._deck = deck
+        self._sets = sets
+    
+    @property
+    def player(self):
+        return self._player
+
+    @property
+    def hand(self):
+        return self._player._hand
+
+    def discard_at(self, index):
+        c = self.hand.take_at(index)
+        self._discard += c
+
+    def draw_discard(self):
+        self.hand += self._discard.draw()
+
+    def draw_deck(self):
+        self.hand += self._deck.draw()
+
+    @property
+    def discard(self):
+        return self._discard
+
+    @property
+    def sets(self):
+        return self._sets
+
+    def __str__(self):
+        return """Player '%s' 
+        Hand %s
+        Set %s
+        Cards in deck %s
+        Cards in discard %s""" % \
+                (str(self._player._id), str(self._player._hand), str(self._player._set), \
+                str(self._deck.card_count), str(self._discard.card_count))
 
 class Player:
     def __init__(self, pid, hand=None, pset=None):
@@ -74,10 +123,6 @@ class Player:
 
     def __repr__(self):
         return "Player(pid=%s, hand=%s, pset=%s)" % (repr(self._id), repr(self._hand), repr(self._set))
-
-class Turn:
-    def __init__(self):
-        pass
 
 class Phase:
     pass
@@ -240,7 +285,7 @@ class Stack:
             raise CardError('index out of bounds:  %d (0 to %d possible)' % (index, len(self._cards)))
 
         tmp = self._cards[index]
-        self._cards[index] = []
+        del self._cards[index]
         return tmp
 
     @property
@@ -266,7 +311,7 @@ class Stack:
         hands = []
         for j in range(players):
             hands.append(Stack(self._cards[:cards]))
-            self._cards[:cards] = []
+            del self._cards[:cards]
 
         return hands
 
@@ -293,14 +338,18 @@ class Stack:
 
     def __str__(self):
         s = ''
-        for i in self._cards:
-            s = s + i._code + ' '
-        return s
+        if self.card_count is not 0:
+            for i in self._cards:
+                s = s + i._code + ' '
+            return s
+        else:
+        	return 'Empty'
 
     def __repr__(self):
         s = 'Stack(['
-        for i in self._cards:
-        	s += i.__repr__() + ', '
+        if self.card_count is not 0:
+            for i in self._cards:
+                s += i.__repr__() + ', '
         s += '])'
         return s
 
@@ -309,7 +358,11 @@ if __name__ == '__main__':
     import unittest
     import test_stack
     import test_card
+    import test_game
     card_suite = unittest.TestLoader().loadTestsFromTestCase(test_card.TestCardCreation)
     stack_suite = unittest.TestLoader().loadTestsFromTestCase(test_stack.TestStack)
-    unittest.TextTestRunner(verbosity=2).run(unittest.TestSuite([card_suite, stack_suite]))
+    game_suite = unittest.TestLoader().loadTestsFromTestCase(test_game.TestGame)
+
+    unittest.TextTestRunner(verbosity=2).run( \
+            unittest.TestSuite([card_suite, stack_suite, game_suite]))
 

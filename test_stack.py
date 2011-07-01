@@ -3,6 +3,15 @@ import unittest
 
 class TestStack (unittest.TestCase):
 
+    def test_str(self):
+        a = Stack()
+
+        self.assertTrue(str(a) == 'Empty')
+
+        a += Card('HA')
+
+        self.assertTrue('HA' in str(a))
+
     def test_create_empty(self):
         a = Stack()
         self.assertTrue(a.card_count == 0) 
