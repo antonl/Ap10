@@ -31,6 +31,7 @@ class Game:
         for i in range(len(self._hands)):
         	self._players.append(Player(pid=player_ids[i], hand=self._hands[i]))
 
+        # Randomize play order
         self._playorder = shuffle(range(len(player_ids)))
 
         self._discard = Stack()
@@ -57,10 +58,30 @@ class PlayerTurn:
 
 class Phase:
     pass
+class Phase1 (Phase):
+    pass
+class Phase2 (Phase):
+    pass
+class Phase3 (Phase):
+    pass
+class Phase4 (Phase):
+    pass
+class Phase5 (Phase):
+    pass
+class Phase6 (Phase):
+    pass
+class Phase7 (Phase):
+    pass
+class Phase8 (Phase):
+    pass
+class Phase9 (Phase):
+    pass
+class Phase10 (Phase):
+    pass
 
 class Card:
     """Represents a single card"""
-    
+    @property
     def val(self):
         return self._value
     
@@ -178,7 +199,6 @@ class Stack:
     shuffle cards, and create full decks
     """ 
     def __init__(self, cards = []):
-        #self._id = uuid.uuid4()
         self._cards = cards 
 
     def shuffle(self):
@@ -197,8 +217,9 @@ class Stack:
         self._cards[index] = []
         return tmp
 
-    def get_score(self):
-        return sum(i.val() for i in self._cards)
+    @property
+    def score(self):
+        return sum(i.val for i in self._cards)
 
     def __iadd__(self, other):
         """In place addition of one stack to another stack. The second stack is emptied in this case"""
@@ -240,6 +261,7 @@ class Stack:
             self._cards.append(Card(' X'))
             self._cards.append(Card(' X'))
 
+    @property
     def card_count(self):
         return len(self._cards)
 

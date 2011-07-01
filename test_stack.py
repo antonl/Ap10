@@ -7,17 +7,21 @@ class TestStack (unittest.TestCase):
         a = Stack()
         self.assertTrue(a._cards == [])
 
+    def test_card_count(self):
+        a = Stack()
+        self.assertTrue(a.card_count == 0)
+
     def test_create_some(self):
         a = [' X', 'H2', 'S4', 'S8', 'CA']
         b = [Card(i) for i in a]
 
         st = Stack(b)
-        self.assertEqual(len(st._cards), len(a))
+        self.assertEqual(st.card_count, len(a))
 
     def test_make_decks(self):
         a = Stack()
         a.make_deck(decks=10)
-        self.assertEqual(len(a._cards), 54*10)
+        self.assertEqual(a.card_count, 54*10)
 
     def test_shuffle(self):
         a = Stack()
@@ -47,7 +51,7 @@ class TestStack (unittest.TestCase):
         self.assertNotIn(hands[3]._cards, a._cards)
         self.assertNotIn(hands[4]._cards, a._cards)
 
-        self.assertTrue(a.card_count(), 4)
+        self.assertTrue(a.card_count, 4)
     
     def test_take_at(self):
         stk = Stack()
@@ -68,17 +72,27 @@ class TestStack (unittest.TestCase):
         stk1 = Stack()
         stk1.make_deck(decks=1)
 
-        self.assertEqual(len(stk1._cards), 54)
+        self.assertEqual(stk1.card_count, 54)
 
         stk2 = Stack()
         stk2.make_deck(decks=1)
 
-        self.assertEqual(len(stk2._cards), 54)
+        self.assertEqual(stk2.card_count, 54)
 
         stk1 += stk2
 
-        self.assertEqual(len(stk1._cards), 54*2)
-        self.assertEqual(len(stk2._cards), 0)
+        self.assertEqual(stk1.card_count, 54*2)
+        self.assertEqual(stk2.card_count, 0)
+
+    def test_iadd_card(self):
+        a = Stack()
+        b = Card(' J')
+        
+        self.assertTrue(a.card_count == 0)
+        a += b
+
+        self.assertTrue(a.card_count == 1)
+        self.assertTrue(b in a._cards)
 
     def test_get_score(self):
         a = [' X', 'HK', 'SK', 'SJ', 'ST', 'SA', 'C2']
@@ -86,9 +100,9 @@ class TestStack (unittest.TestCase):
         
         b = 0
         for i in cards:
-            b += i.val()
+            b += i.val
 
-        self.assertEqual(b, Stack(cards).get_score()) 
+        self.assertEqual(b, Stack(cards).score) 
         
 if __name__ == '__main__':
 	unittest.main()

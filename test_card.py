@@ -11,11 +11,12 @@ class TestCardCreation (unittest.TestCase):
         for i in range(4):
             for j in range(13):
                 card1 = Card(suits[i] + ranks[j])
-                self.assertTrue(card1.__str__() == (rank_names[j] + ' of ' + suit_names[i]), msg='actual string is "' + card1.__str__() +'"')
+                self.assertTrue(str(card1) == (rank_names[j] + ' of ' + suit_names[i]), \
+                        msg='actual string is \'%s\'' % str(card1))
         
     def test_create_jokers(self):
         card1 = Card(' X')
-        self.assertTrue(card1.__str__() == 'Joker', msg='actual string is "' + card1.__str__() +'"')
+        self.assertTrue(str(card1) == 'Joker', msg='actual string is \'%s\'' % str(card1))
         
     def test_suited_jokers(self):
         with self.assertRaises(CardError):
