@@ -5,7 +5,16 @@ class TestStack (unittest.TestCase):
 
     def test_create_empty(self):
         a = Stack()
-        self.assertTrue(a._cards == [])
+        self.assertTrue(a.card_count == 0) 
+        b = Stack()
+        self.assertTrue(b.card_count == 0)
+
+        c = Card('D3')
+        b += c
+
+        self.assertFalse(a.card_count == 1)
+        self.assertTrue(b.card_count == 1)
+
 
     def test_card_count(self):
         a = Stack()

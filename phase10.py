@@ -3,21 +3,25 @@ import random
 class Game:
     """Class representing a phase 10 game. Should be serializable"""
 
-    def __init__(self, state={}):
-        try:
-            self._deck = state['deck']
-            self._discard = state['discard']
-            self._hands = state['hands']
-            self._players = state['players']
-            self._playorder = state['playorder']
-        except KeyError:
-            # State does not have all of the keys,
-            # assume that the Game is empty
-            self._deck = Stack() 
-            self._discard = Stack()
-            self._hands = []
-            self._players = []
-            self._playorder = []
+    def __init__(self, state=None):
+        if state is not None:
+            try:
+                self._deck = state['deck']
+                self._discard = state['discard']
+                self._hands = state['hands']
+                self._players = state['players']
+                self._playorder = state['playorder']
+                self._turn = state['turn']
+                return
+            except KeyError:
+                # State does not have all of the keys,
+                # assume that the Game is empty
+                self._deck = Stack() 
+                self._discard = Stack()
+                self._hands = []
+                self._players = []
+                self._playorder = []
+                self._turn = 1
 
     def start_game(self, player_ids, decks=2):
         """player_ids is a list of player ids that is used to identify whose turn it is"""
@@ -28,33 +32,52 @@ class Game:
         self._hands = self._deck.deal(10, len(player_ids))
         self._players = []
 
+        self._turn = 1
+
         for i in range(len(self._hands)):
-        	self._players.append(Player(pid=player_ids[i], hand=self._hands[i]))
+        	self._players.append(Player(pid=player_ids[i], hand=self._hands[i], pset=Stack()))
 
         # Randomize play order
         self._playorder = shuffle(range(len(player_ids)))
 
         self._discard = Stack()
         self._discard += self._deck.draw()
-
-
-    def get_turn(self):
+    
+    @property
+    def turn(self):
+        self._turn += 1
+        # return Turn
         pass
 
     def __repr__(self):
-        return "Game({'deck' : %s, 'players' : %s, 'discard' : %s, 'hands' : %s, 'playorder' : %s})" \
-                % (repr(self._deck), repr(self._players), repr(self._discard), repr(self._hands), repr(self._playorder))
+        return "Game({'deck' : %s, 'players' : %s, 'discard' : %s, 'hands' : %s, 'playorder' : %s, 'turn' : %s})" \
+                % (repr(self._deck), repr(self._players), repr(self._discard), repr(self._hands), \
+                        repr(self._playorder), repr(self._turn))
 
 class Player:
-    def __init__(self, pid, hand):
+    def __init__(self, pid, hand=None, pset=None):
+        """pid is a key that will be used to identify the player with a login name
+        hand is a Stack that represents the player's hand
+        pset is a Stack that represents the player's current set
+        """
         self._id = pid
-        self._hand = hand
+
+        if hand:
+            self._hand = hand 
+        else:
+        	self._hand = Stack()
+
+        if pset: 
+            self._set = pset
+        else:
+        	self._set = Stack()
 
     def __repr__(self):
-        return "Player(pid=%s, hand=%s)" % (repr(self._id), repr(self._hand))
+        return "Player(pid=%s, hand=%s, pset=%s)" % (repr(self._id), repr(self._hand), repr(self._set))
 
-class PlayerTurn:
-    pass
+class Turn:
+    def __init__(self):
+        pass
 
 class Phase:
     pass
@@ -198,8 +221,11 @@ class Stack:
     Defines a collection of cards with helper methods to combine stacks, 
     shuffle cards, and create full decks
     """ 
-    def __init__(self, cards = []):
-        self._cards = cards 
+    def __init__(self, cards=None):
+        if cards is not None:
+        	self._cards = cards 
+        else:
+        	self._cards = []
 
     def shuffle(self):
         """Perform the Fisher-Yates shuffle"""
