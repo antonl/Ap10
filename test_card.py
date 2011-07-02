@@ -18,6 +18,16 @@ class TestCardCreation (unittest.TestCase):
         card1 = Card(' X')
         self.assertTrue(str(card1) == 'Joker', msg='actual string is \'%s\'' % str(card1))
         
+    def test_compare(self):
+        a = Card(' X')
+        b = Card(' X')
+        c = Card('HA')
+
+        self.assertTrue(a == b)
+        self.assertFalse(a != b)
+        self.assertTrue(a != c)
+        self.assertFalse(b == c)
+
     def test_suited_jokers(self):
         with self.assertRaises(CardError):
             card1 = Card('HX')

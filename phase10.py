@@ -1,4 +1,5 @@
 import random
+import copy
 
 class Game:
     """Class representing a phase 10 game. Should be serializable"""
@@ -35,7 +36,7 @@ class Game:
         self._turn = 1
 
         for i in range(len(self._hands)):
-        	self._players.append(Player(pid=player_ids[i], hand=self._hands[i], pset=Stack()))
+            self._players.append(Player(pid=player_ids[i], hand=self._hands[i], pset=Stack()))
 
         # Randomize play order
         self._playorder = shuffle(range(len(player_ids)))
@@ -114,12 +115,12 @@ class Player:
         if hand:
             self._hand = hand 
         else:
-        	self._hand = Stack()
+            self._hand = Stack()
 
         if pset: 
             self._set = pset
         else:
-        	self._set = Stack()
+            self._set = Stack()
 
     def __repr__(self):
         return "Player(pid=%s, hand=%s, pset=%s)" % (repr(self._id), repr(self._hand), repr(self._set))
@@ -151,27 +152,35 @@ class Card:
     """Represents a single card"""
     @property
     def val(self):
-        return self._value
-    
+        return self._point_value
+
     def __init__(self, code): 
         """
         Code is Suit letter (H,C,D,S) followed by rank (A,2,3,4,5,6,7,8,9,T,J,Q,K,X) 
         where T is 10 and X is joker
         """
+        if not isinstance(code, str):
+            raise CardError('Cannot create Card without string code')
+
         self._code = code    
 
         # Set suit
         s = code[0]
         if s == 'H':
             self._suit = 'Hearts'
+            self._suit_value = 0x0
         elif s == 'C':
             self._suit = 'Clubs'
+            self._suit_value = 0x1
         elif s == 'D':
             self._suit = 'Diamonds'
+            self._suit_value = 0x2
         elif s == 'S':
             self._suit = 'Spades'
+            self._suit_value = 0x3
         elif s == ' ': # Used for jokers
             self._suit = None
+            self._suit_value = 0x4
         else:
             raise CardError('Invalid suit code \'%s\'' % s)
 
@@ -180,49 +189,63 @@ class Card:
 
         if r == 'A':
             self._rank = 'Ace'
-            self._value = 5
+            self._point_value = 5
+            self._rank_value = 0x1
         elif r == '2':
             self._rank = 'Two'
-            self._value = 5
+            self._point_value = 5
+            self._rank_value = 0x2
         elif r == '3':
             self._rank = 'Three'
-            self._value = 5
+            self._point_value = 5
+            self._rank_value = 0x3
         elif r == '4':
             self._rank = 'Four'
-            self._value = 5
+            self._point_value = 5
+            self._rank_value = 0x4
         elif r == '5':
             self._rank = 'Five'
-            self._value = 5
+            self._point_value = 5
+            self._rank_value = 0x5
         elif r == '6':
             self._rank = 'Six'
-            self._value = 5
+            self._point_value = 5
+            self._rank_value = 0x6
         elif r == '7':
             self._rank = 'Seven'
-            self._value = 5
+            self._point_value = 5
+            self._rank_value = 0x7
         elif r == '8':
             self._rank = 'Eight'
-            self._value = 5
+            self._point_value = 5
+            self._rank_value = 0x8
         elif r == '9':
             self._rank = 'Nine'
-            self._value = 5
+            self._point_value = 5
+            self._rank_value = 0x9
         elif r == 'T':
             self._rank = 'Ten'
-            self._value = 10 
+            self._point_value = 10 
+            self._rank_value = 0xa
         elif r == 'J':
             self._rank = 'Jack'
-            self._value = 10 
+            self._point_value = 10 
+            self._rank_value = 0xb
         elif r == 'Q': 
             self._rank = 'Queen'
-            self._value = 10 
+            self._point_value = 10 
+            self._rank_value = 0xc
         elif r == 'K':
             self._rank = 'King'
-            self._value = 25 
+            self._point_value = 25 
+            self._rank_value = 0xd
         elif r == 'X':
             if s == ' ':
                 self._rank = 'Joker'
-                self._value = 15
+                self._point_value = 15
+                self._rank_value = 0xe
             else:
-            	raise CardError('Cannot create suited jokers \'%s\'' % code)
+                raise CardError('Cannot create suited jokers \'%s\'' % code)
         else:
              raise CardError('Invalid rank code %s', r)
 
@@ -234,6 +257,16 @@ class Card:
 
     def __repr__(self):
         return "Card(%s)" % repr(self._code)
+
+    def __cmp__(self, other):
+        if isinstance(other, Card):
+            return 4*(self._rank_value - other._rank_value) + self._suit_value - other._suit_value 
+        elif isinstance(other, Stack):
+            # There will be one True for each element of other, so the only way to get 0
+            # is to subtract the card count - 1
+            return sum(self == i for i in other) - other.card_count - 1
+        else:
+            raise NotImplementedError('Cannot compare Card to unknown type %s' % other.__class__) 
 
 def shuffle(items):
     if len(items) > 0:
@@ -268,9 +301,28 @@ class Stack:
     """ 
     def __init__(self, cards=None):
         if cards is not None:
-        	self._cards = cards 
+            if isinstance(cards, Stack):
+                self._cards = cards._cards[:]
+            elif isinstance(cards, list):
+                self._cards = []
+                for i in cards:
+                    if isinstance(i, Card):
+                        self.append(i)
+                    elif isinstance(i, str):
+                        self.append(Card(i))
+            else:
+                self._cards = []
         else:
-        	self._cards = []
+            self._cards = []
+
+    def __getitem__(self, index):
+        return self._cards[index]
+    def __setitem__(self, key, value):
+        self._cards[key] = value
+    def __delitem__(self, key):
+        del self._cards[key]
+    def append(self, c):
+        self._cards.append(c)
 
     def shuffle(self):
         """Perform the Fisher-Yates shuffle"""
@@ -295,14 +347,23 @@ class Stack:
     def __iadd__(self, other):
         """In place addition of one stack to another stack. The second stack is emptied in this case"""
         if isinstance(other, Card):
-        	self._cards.append(other)
+            self._cards.append(other)
         elif isinstance(other, Stack):
             self._cards.extend(other._cards)
             other._cards = []
         else:
-        	raise CardError('Cannot add an unhandled type to Stack')
+            raise CardError('Cannot add an unhandled type to Stack')
 
         return self
+    
+    def sort(self, by='both'):
+        if self.card_count:
+            if by == 'rank':
+                self._cards.sort(key=lambda x: x._rank_value)
+            elif by == 'suit':
+                self._cards.sort(key=lambda x: x._suit_value)
+            elif by == 'both':
+                self._cards.sort()
 
     def deal(self, cards, players = 3):
         if len(self._cards) < cards*players: 
@@ -343,7 +404,7 @@ class Stack:
                 s = s + i._code + ' '
             return s
         else:
-        	return 'Empty'
+            return 'Empty'
 
     def __repr__(self):
         s = 'Stack(['
@@ -352,6 +413,49 @@ class Stack:
                 s += i.__repr__() + ', '
         s += '])'
         return s
+
+    def __cmp__(self, other):
+        if isinstance(other, Stack):
+            if self.card_count != other.card_count:
+            	return -1
+
+            a = copy.deepcopy(self)
+            b = copy.deepcopy(other)
+
+            a.sort(by='both')
+            b.sort(by='both')
+            
+            eq = 0
+            for i in range(a.card_count): 
+            	eq += int(a[i] == b[i]) - 1
+            return eq
+
+    def __contains__(self, item):
+        if isinstance(item, Card):
+            return (i == item for i in self)
+        elif isinstance(item, Stack):
+            if item.card_count > self.card_count:
+            	return False
+
+            a = sum(i in self for i in item) 
+           
+            if a == item.card_count and self.card_count >= item.card_count:
+            	return True
+            else:
+            	return False
+
+
+    def __iter__(self):
+        self._iter_index = 0 
+        return self
+
+    def next(self):
+        if self._iter_index == self.card_count:
+            raise StopIteration
+        
+        self._iter_index += 1
+        return self._cards[self._iter_index -1]
+        
 
 # Unit tests
 if __name__ == '__main__':

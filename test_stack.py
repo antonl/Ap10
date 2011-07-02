@@ -24,6 +24,17 @@ class TestStack (unittest.TestCase):
         self.assertFalse(a.card_count == 1)
         self.assertTrue(b.card_count == 1)
 
+    def test_compare_stacks(self):
+        a = Stack(['HA', 'H2'])
+        b = Stack(['HA', 'H2'])
+        c = Stack(['H2', 'HA'])
+        
+        self.assertTrue(a == b)
+        self.assertTrue(a == c)
+    
+        b += Card('H3')
+        self.assertFalse(a == b)
+        self.assertTrue(a == c)
 
     def test_card_count(self):
         a = Stack()
@@ -44,9 +55,14 @@ class TestStack (unittest.TestCase):
     def test_shuffle(self):
         a = Stack()
         a.make_deck(decks=3)
-        b = str(a)
+        b = eval(repr(a))
         a.shuffle()
-        self.assertNotEqual(a,b)
+        
+        total_different = 0
+        for i in range(a.card_count):
+            total_different += int(a[i] == b[i])
+
+        self.assertFalse(total_different == 0)
 
     def test_deal_too_many(self):
         a = Stack()
@@ -58,16 +74,17 @@ class TestStack (unittest.TestCase):
     def test_deal_different(self):
         a = Stack()
         a.make_deck(decks=1)
+
         a.shuffle()
         
         hands = a.deal(10, players=5)
 
         self.assertNotEqual(hands[0], hands[1])
-        self.assertNotIn(hands[0]._cards, a._cards)
-        self.assertNotIn(hands[1]._cards, a._cards)
-        self.assertNotIn(hands[2]._cards, a._cards)
-        self.assertNotIn(hands[3]._cards, a._cards)
-        self.assertNotIn(hands[4]._cards, a._cards)
+        self.assertNotIn(hands[0], a)
+        self.assertNotIn(hands[1], a)
+        self.assertNotIn(hands[2], a)
+        self.assertNotIn(hands[3], a)
+        self.assertNotIn(hands[4], a)
 
         self.assertTrue(a.card_count, 4)
     

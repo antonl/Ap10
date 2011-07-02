@@ -15,8 +15,10 @@ class TestGame (unittest.TestCase):
         a = g._players[0]
         b = g._players[1]
 
-        self.assertFalse(a._hand._cards in g._deck._cards) 
-        self.assertFalse(b._hand._cards in g._deck._cards) 
+        # There can be more than one of a card in a deck, 
+        # so these tests give the wrong result
+        #self.assertFalse(a._hand in g._deck) 
+        #self.assertFalse(b._hand in g._deck) 
 
         self.assertTrue(a._set.card_count == 0) 
         self.assertTrue(b._set.card_count == 0) 
