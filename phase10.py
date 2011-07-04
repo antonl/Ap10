@@ -1,5 +1,6 @@
 import random
 import copy
+import itertools
 
 class Game:
     """Class representing a phase 10 game. Should be serializable"""
@@ -56,7 +57,10 @@ class Game:
         return Turn(self._players[player_index], sets, self._deck, self._discard)
 
     def next(self):
-        self._turn += 1
+        if self._discard[-1] == Card(' X'):
+            self._turn += 2
+        else:
+            self._turn += 1
 
     def __repr__(self):
         return "Game({'deck' : %s, 'players' : %s, 'discard' : %s, 'hands' : %s, 'playorder' : %s, 'turn' : %s})" \
@@ -365,6 +369,127 @@ class Stack:
             elif by == 'both':
                 self._cards.sort()
 
+    @property
+    def runs(self):
+        """Returns possible runs in a stack"""
+        res = self._preprocess_cards()
+        ranks = res['ranks']
+        cards = []
+        kings = [] 
+
+        for i in itertools.izip(ranks, res['sets']):
+            # Get kings and jokers
+            if i[0] == 0xd:
+                # King
+                kings = i[1] 
+            elif i[0] == 0xe:
+                # Joker
+                pass
+            else:
+                # Any other card
+                cards.append(i)
+
+        # Sort cards
+        cards.sort(key=lambda x: x[0])
+
+        # iterate over len(cards)-1 because can't have a run starting at the 
+        # last card
+        runs = []
+        skip = -1 
+
+        #from pudb import set_trace; set_trace()
+
+        for i in range(len(cards)-1):
+            if i <= skip:
+                continue
+
+            run = [cards[i][1]]
+            prev = cards[i][0]
+            
+            for j in range(i+1, len(cards)):
+                if prev == cards[j][0]-1:
+                    #set_trace()
+                    # This is a run. Append to run
+                    run.append(cards[j][1])
+                    prev = cards[j][0]
+                    skip = j
+                else:
+                    #set_trace()
+                    break
+            
+            if len(run) >= 2:
+                runs.append(run)
+
+            #set_trace()
+        
+        # Try to join found sequences using kings
+        if len(kings) == 0 or len(runs) < 2:
+        	return runs
+        
+        nk = len(kings)
+        runs_with_wilds = []
+
+        for x,y in itertools.permutations(runs, 2):
+            # Note the -1. If a card is missing, the difference will be 2, not 1
+            req_kings = y[0][0]._rank_value - x[-1][0]._rank_value - 1
+
+            if abs(req_kings) <= nk and req_kings > 0:
+                # We have enough kings to join the pair
+                tmp = []
+                tmp.extend(x)
+                tmp.append(req_kings*kings)
+                tmp.extend(y)
+                runs_with_wilds.append(tmp)
+
+        if len(runs_with_wilds) > 0:
+            runs.append(runs_with_wilds) 
+
+        return runs
+    
+    def _issequence(list1, list2):
+        """Function receives two lists of tuples of the form
+        (rank, [cards of that rank]) and checks if they're a sequence
+        It assumes that list1 and list2 are sequences"""
+
+#        list1.sort(key=lambda x: x[0])
+#        list2.sort(key=lambda x: x[0])
+
+        if list1[-1][0] == list2[0][0]-1:
+            # list1,list2 form a sequence
+            return True
+        if list2[-1][0] == list1[0][0]-1:
+            # list2,list1 form a sequence
+            return True
+
+        return False
+
+    @property
+    def sets(self):
+        """Return possible sets in a stack"""
+        res = self._preprocess_cards()
+        
+        sets = []
+        for i in itertools.ifilter(lambda x: len(x) >= 2, res['sets']):
+            sets.append(i)
+        return sets 
+
+    def _preprocess_cards(self):
+        """Sorts and analyzes cards"""
+        tmp = copy.copy(self) # Perform shallow copy of self, so Cards are references
+        tmp.sort(by='rank')
+
+        # Break into sets
+        ranks = []
+        groups = []
+        for k,v in itertools.groupby(tmp, lambda x: x._rank_value):
+            groups.append(list(v))
+            ranks.append(k)
+
+        return {'ranks' : ranks, 'sets' : groups}
+
+    def set_down(self):
+        pass
+
     def deal(self, cards, players = 3):
         if len(self._cards) < cards*players: 
             raise CardError('Cannot deal that many cards from Stack') 
@@ -417,7 +542,7 @@ class Stack:
     def __cmp__(self, other):
         if isinstance(other, Stack):
             if self.card_count != other.card_count:
-            	return -1
+                return -1
 
             a = copy.deepcopy(self)
             b = copy.deepcopy(other)
@@ -427,7 +552,7 @@ class Stack:
             
             eq = 0
             for i in range(a.card_count): 
-            	eq += int(a[i] == b[i]) - 1
+                eq += int(a[i] == b[i]) - 1
             return eq
 
     def __contains__(self, item):
@@ -435,14 +560,14 @@ class Stack:
             return (i == item for i in self)
         elif isinstance(item, Stack):
             if item.card_count > self.card_count:
-            	return False
+                return False
 
             a = sum(i in self for i in item) 
            
             if a == item.card_count and self.card_count >= item.card_count:
-            	return True
+                return True
             else:
-            	return False
+                return False
 
 
     def __iter__(self):
